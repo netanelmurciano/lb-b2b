@@ -17,21 +17,24 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('products', 'ProductsController@index');
+Route::group(['middleware' => ['cors']], function () {
+    
+    Route::get('products', 'ProductsController@index');
 
-//Route::post('order', 'OrderController@store');
+    //Route::post('order', 'OrderController@store');
 
-Route::post('order', 'CustomerOrderInfoController@create');
+    Route::post('order', 'CustomerOrderInfoController@create');
 
-Route::post('login', 'CustomersController@login');
+    Route::post('login', 'CustomersController@login');
 
-Route::post('register', 'CustomersController@register');
+    Route::post('register', 'CustomersController@register');
 
-Route::post('checkEmail', 'CustomersController@customerByEmail');
+    Route::post('checkEmail', 'CustomersController@customerByEmail');
 
-///////////////// ADMIN ROUTES ///////////////////
-Route::post('addProduct', 'ProductsController@create');
+    ///////////////// ADMIN ROUTES ///////////////////
+    Route::post('addProduct', 'ProductsController@create');
 
-Route::post('removeProduct', 'ProductsController@removeProduct');
+    Route::post('removeProduct', 'ProductsController@removeProduct');
 
-Route::post('updateProduct', 'ProductsController@updateProduct');
+    Route::post('updateProduct', 'ProductsController@updateProduct');
+});

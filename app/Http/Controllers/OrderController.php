@@ -43,8 +43,7 @@ class OrderController extends Controller
                 
                 //DB::table('orders')->insert($data);
                 Order::create($data);
-                
-                
+              
             } 
 
         }

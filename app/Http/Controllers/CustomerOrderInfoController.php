@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 use App\CustomerOrderInfo;
-
+use App\Models\ProductOrder;
+use App\Http\Utilities\ApiCall;
 use App\Exceptions\ValidationException;
 use Exception;
+
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
-use App\Http\Utilities\ApiCall;
+
 use Illuminate\Support\Facades\Auth;
 
 class CustomerOrderInfoController extends Controller
@@ -45,7 +47,6 @@ class CustomerOrderInfoController extends Controller
                     'deliveryTime' => $request->input('deliveryTime'),
                 ]);
             } else {
-  
                 $this->apiCall->setStatusCode(200);
                 $newCustomerOrderInfo = CustomerOrderInfo::create([
                     'firstName' => $request->input('firstName'),
@@ -53,15 +54,40 @@ class CustomerOrderInfoController extends Controller
                     'address' => $request->input('address'),
                     'deliveryTime' => $request->input('deliveryTime') ? $request->input('deliveryTime') : 'morning' ,
                     'isIatHome' => $request->input('isIatHome') ? $request->input('isIatHome') : '1',
-                    'user_id' => auth()->id(),
+                    'user_id' => $request->input('userId'),
                 ]);
+
+                // get the newCustomerOrderInfo id (the last one we insert)
+                $customerOrderInfoId = $newCustomerOrderInfo->id;
+                
+                $productsOrders = $request->input('productsOrders');
+
+                foreach($productsOrders as $productOrder) {
+                    if(!$productOrder || !$productOrder['itemsCount']) {
+                        continue;
+                    } else {
+                        $newProductsOrders = ProductOrder::create([
+                        'produtName' => $productOrder['productName'],
+                        'numOfItems' => $productOrder['itemsCount'],
+                        'totalPrice' => $productOrder['productPrice'],
+                        'produtId' => $productOrder['product_id'],
+                        'customerUserId' => $request->input('userId'),
+                        'customerOrderInfoId' => $customerOrderInfoId,  
+                        ]);
+                    }
+                }
             }
   
         } catch (Exception $e) {
             Log::error($e);
             $this->apiCall->setStatusCode(500);
-        } finally {  
-            return response()->json($newCustomerOrderInfo);
+        } finally { 
+            $data = [
+                'customerOrderInfo' => 'newCustomerOrderInfo',
+                'productOrder' => $newProductsOrders,
+                'status' => 'orderSuccess'
+            ]; 
+            return response()->json($data);
         }  
     } 
 }
